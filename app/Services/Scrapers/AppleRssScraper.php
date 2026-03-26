@@ -43,7 +43,7 @@ class AppleRssScraper
 
     private function scrapeCountry(string $country): int
     {
-        $url = "https://rss.applemarketingtools.com/api/v2/{$country}/apps/most-recent/50/apps.json";
+        $url = "https://rss.marketingtools.apple.com/api/v2/{$country}/apps/most-recent/50/apps.json";
 
         $response = Http::timeout(15)->get($url);
 
