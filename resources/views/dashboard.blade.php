@@ -104,7 +104,7 @@
     {{-- Liste des apps --}}
     <div class="space-y-4">
         @forelse ($apps as $app)
-            <a href="{{ route('app.show', $app) }}" class="block glass-strong rounded-2xl p-5 card-hover">
+            <a href="{{ $app->folder === 'archive' ? '#' : route('app.show', $app) }}" class="block glass-strong rounded-2xl p-5 card-hover {{ $app->folder === 'archive' ? 'opacity-50' : '' }}">
                 {{-- Header : Scores + Nom --}}
                 <div class="flex items-start gap-4 mb-4">
                     @if ($app->icon_url)

@@ -12,13 +12,20 @@ class DashboardController extends Controller
     {
         $query = DiscoveredApp::analyzed();
 
-        // Filtre dossier
+        // Filtre dossier — par defaut on cache les archivees
         if ($request->filled('folder')) {
             if ($request->folder === 'non_classe') {
                 $query->whereNull('folder');
+            } elseif ($request->folder === 'archive') {
+                $query->where('folder', 'archive');
             } else {
                 $query->where('folder', $request->folder);
             }
+        } else {
+            // Vue "Toutes" = tout sauf les archivees
+            $query->where(function ($q) {
+                $q->whereNull('folder')->orWhere('folder', '!=', 'archive');
+            });
         }
 
         // Filtres
