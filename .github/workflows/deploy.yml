@@ -11,13 +11,13 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 95.216.179.163
+          host: ${{ secrets.SERVER_HOST }}
           username: root
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             cd /opt/app-surveillance
             git pull origin main
-            docker compose build --no-cache app
+            docker compose build --no-cache app queue scheduler
             docker compose up -d
             docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan config:cache

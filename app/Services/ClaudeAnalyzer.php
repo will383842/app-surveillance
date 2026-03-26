@@ -16,9 +16,6 @@ class ClaudeAnalyzer
         $this->apiKey = config('services.anthropic.api_key');
     }
 
-    /**
-     * Analyse une app découverte et remplit toutes les colonnes d'analyse.
-     */
     public function analyze(DiscoveredApp $app): bool
     {
         if (!$this->apiKey) {
@@ -35,7 +32,7 @@ class ClaudeAnalyzer
                 'content-type' => 'application/json',
             ])->timeout(60)->post('https://api.anthropic.com/v1/messages', [
                 'model' => $this->model,
-                'max_tokens' => 2000,
+                'max_tokens' => 2500,
                 'messages' => [
                     ['role' => 'user', 'content' => $prompt],
                 ],
@@ -64,47 +61,58 @@ class ClaudeAnalyzer
         if ($app->release_date) $info .= "\nDate sortie: {$app->release_date->format('Y-m-d')}";
 
         return <<<PROMPT
-Tu es un analyste expert en applications mobiles et web. Analyse cette application et réponds UNIQUEMENT en JSON valide, tout en français.
+Tu analyses des applications pour le grand public. Ecris comme si tu expliquais a un ami, avec des mots simples et clairs. Pas de jargon technique.
+
+IMPORTANT:
+- Si cette app est destinee aux professionnels, entreprises, developpeurs ou B2B, reponds UNIQUEMENT: {"is_consumer": false}
+- Sinon, fais l'analyse complete ci-dessous
+- TOUT doit etre en francais, y compris le nom traduit de l'app si possible
+- Utilise un langage simple, comme si tu parlais a quelqu'un qui ne connait rien a la tech
 
 {$info}
 
-Réponds avec ce JSON exact (pas de markdown, pas de commentaires) :
+Reponds UNIQUEMENT en JSON valide (pas de markdown, pas de commentaires) :
 {
-    "summary_fr": "Résumé en 2-3 phrases de ce que fait l'app",
-    "category": "Catégorie principale (Productivité, Social, Santé, Finance, Éducation, Divertissement, Utilitaires, Communication, Shopping, Voyage, Alimentation, Musique, Photo & Vidéo, Business, Lifestyle, Actualités, Sport, Rencontres, Médical, Intelligence Artificielle, Jeux, Design, Marketing, Développement, Crypto, Fitness, Météo, Navigation, Référence, Autre)",
+    "is_consumer": true,
+    "name_fr": "Nom de l'app traduit en francais si possible, sinon garder le nom original",
+    "summary_fr": "Explication simple en 2-3 phrases de ce que fait l'app. Comme si tu expliquais a ta mere. Qu'est-ce que ca fait concretement pour l'utilisateur ?",
+    "experience_fr": "Comment ca se passe quand on utilise l'app ? Decris le parcours : tu ouvres l'app, tu fais quoi, tu vois quoi, ca donne quoi ? Est-ce que c'est agreable, rapide, intuitif ?",
+    "category": "Categorie (Social, Sante, Divertissement, Photo & Video, Musique, Jeux, Shopping, Rencontres, Fitness, Voyage, Alimentation, Lifestyle, Communication, Finance perso, Education, Sport, Meteo, Autre)",
     "feature_count": 5,
-    "exceptional_factor_fr": "Ce qui rend cette app unique/exceptionnelle par rapport à la concurrence",
-    "target_audience_fr": "Cible clients précise (âge, profil, besoin)",
-    "business_model": "freemium|subscription|ads|paid|free",
-    "pros_fr": ["Point positif 1", "Point positif 2", "Point positif 3"],
-    "cons_fr": ["Point négatif 1", "Point négatif 2", "Point négatif 3"],
+    "features_list_fr": ["Fonction 1 en mots simples", "Fonction 2", "Fonction 3"],
+    "exceptional_factor_fr": "En une phrase : qu'est-ce qui rend cette app differente de toutes les autres ? Pourquoi quelqu'un choisirait celle-la ?",
+    "target_audience_fr": "A qui c'est destine ? (ex: ados 13-17 ans qui aiment les memes, mamans actives 30-40 ans, etudiants qui veulent economiser...)",
+    "age_group": "gen_z|millennials|adultes|seniors|tous",
+    "business_model": "gratuit|freemium|abonnement|pub|payant",
+    "pros_fr": ["Point fort 1 en langage simple", "Point fort 2", "Point fort 3"],
+    "cons_fr": ["Point faible 1 en langage simple", "Point faible 2", "Point faible 3"],
     "explosion_score": 7,
-    "explosion_verdict_fr": "Explication argumentée du potentiel d'explosion (timing marché, besoin réel, différenciation, viralité naturelle)",
+    "explosion_verdict_fr": "Pourquoi cette app peut (ou ne peut pas) exploser ? Explique simplement : est-ce que les gens en ont vraiment besoin ? Est-ce que c'est le bon moment ? Est-ce que ca peut devenir viral ?",
     "buzz_score": 6,
     "retention_estimate": "faible|moyenne|forte",
+    "retention_why_fr": "Pourquoi les gens reviendraient (ou pas) sur cette app ? Qu'est-ce qui les accroche ou les fait fuir ?",
     "k_factor": 5,
-    "sharing_mechanisms_fr": "Mécanismes de partage identifiés (invitations, contenu partageable, referral, etc.)",
+    "sharing_mechanisms_fr": "Comment les utilisateurs partagent l'app ? (ex: on peut inviter ses amis, le contenu se partage facilement sur Insta/TikTok, il y a un systeme de parrainage...)",
     "group_belonging": true,
-    "group_belonging_detail_fr": "Comment l'app crée un sentiment d'appartenance",
+    "group_belonging_detail_fr": "Est-ce que l'app donne le sentiment de faire partie d'un groupe ou d'une communaute ? Comment ?",
     "usage_duration": "courte|moyenne|longue",
+    "usage_detail_fr": "Combien de temps on passe sur l'app par session ? (ex: 2 min pour checker, 15 min pour scroller, 1h pour jouer)",
     "user_recognition": false,
-    "user_recognition_detail_fr": "Comment l'utilisateur est reconnu ou mis en avant",
-    "competition_level": "faible|moyenne|saturée",
+    "user_recognition_detail_fr": "Est-ce que l'utilisateur se sent important, reconnu, mis en avant ? (ex: profil public, badges, classement, likes sur son contenu...)",
+    "competition_level": "faible|moyenne|saturee",
+    "competition_detail_fr": "Quelles sont les apps concurrentes connues ? En quoi celle-ci est differente ?",
     "technical_effort": "facile|moyen|complexe",
-    "market_size": "niche|moyen|massif"
+    "market_size": "niche|moyen|enorme"
 }
 
-IMPORTANT:
-- explosion_score, buzz_score, k_factor sont des entiers de 0 à 10
-- Sois honnête et critique dans ton analyse
-- Si tu manques d'infos, fais ta meilleure estimation basée sur le nom et la description
-- TOUT en français
+RAPPEL: Si l'app est pour les pros/entreprises/developpeurs, reponds juste {"is_consumer": false}
+Les scores explosion_score, buzz_score, k_factor sont des entiers de 0 a 10.
+Sois honnete et critique. Langage SIMPLE.
 PROMPT;
     }
 
     private function parseAndUpdate(DiscoveredApp $app, string $text): bool
     {
-        // Extraire le JSON de la réponse
         $text = trim($text);
         if (str_starts_with($text, '```')) {
             $text = preg_replace('/^```(?:json)?\n?/', '', $text);
@@ -117,7 +125,15 @@ PROMPT;
             return false;
         }
 
+        // Si app pro/B2B, marquer comme analysée mais la supprimer
+        if (isset($data['is_consumer']) && $data['is_consumer'] === false) {
+            $app->delete();
+            Log::info("ClaudeAnalyzer: [{$app->name}] supprimée (app pro/B2B)");
+            return true;
+        }
+
         $app->update([
+            'name' => $data['name_fr'] ?? $app->name,
             'summary_fr' => $data['summary_fr'] ?? $app->summary_fr,
             'category' => $data['category'] ?? $app->category,
             'feature_count' => $data['feature_count'] ?? null,
@@ -142,6 +158,13 @@ PROMPT;
             'market_size' => $data['market_size'] ?? null,
             'analyzed' => true,
             'analyzed_at' => now(),
+            // Nouveaux champs stockés en JSON dans les colonnes existantes ou via extra
+            'experience_fr' => $data['experience_fr'] ?? null,
+            'retention_why_fr' => $data['retention_why_fr'] ?? null,
+            'usage_detail_fr' => $data['usage_detail_fr'] ?? null,
+            'competition_detail_fr' => $data['competition_detail_fr'] ?? null,
+            'features_list_fr' => $data['features_list_fr'] ?? null,
+            'age_group' => $data['age_group'] ?? null,
         ]);
 
         return true;

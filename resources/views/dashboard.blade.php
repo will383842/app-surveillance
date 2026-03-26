@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Suivi nouvelles APPs')
 
 @section('nav-stats')
     <span>{{ $totalApps }} apps</span>
@@ -21,14 +21,12 @@
         </div>
 
         <div x-show="open" x-cloak class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {{-- Recherche --}}
             <div class="col-span-2">
                 <input type="text" name="search" value="{{ request('search') }}"
                        placeholder="Rechercher une app..."
                        class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none">
             </div>
 
-            {{-- Score minimum --}}
             <div>
                 <select name="min_score" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
                     <option value="">Score min.</option>
@@ -38,7 +36,6 @@
                 </select>
             </div>
 
-            {{-- Categorie --}}
             <div>
                 <select name="category" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
                     <option value="">Categorie</option>
@@ -48,7 +45,6 @@
                 </select>
             </div>
 
-            {{-- Plateforme --}}
             <div>
                 <select name="platform" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
                     <option value="">Plateforme</option>
@@ -58,47 +54,44 @@
                 </select>
             </div>
 
-            {{-- Source --}}
             <div>
-                <select name="source" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
-                    <option value="">Source</option>
-                    @foreach ($sources as $src)
-                        <option value="{{ $src }}" {{ request('source') == $src ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $src)) }}</option>
-                    @endforeach
+                <select name="age_group" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
+                    <option value="">Public</option>
+                    <option value="gen_z" {{ request('age_group') == 'gen_z' ? 'selected' : '' }}>Gen Z</option>
+                    <option value="millennials" {{ request('age_group') == 'millennials' ? 'selected' : '' }}>Millennials</option>
+                    <option value="adultes" {{ request('age_group') == 'adultes' ? 'selected' : '' }}>Adultes</option>
+                    <option value="seniors" {{ request('age_group') == 'seniors' ? 'selected' : '' }}>Seniors</option>
+                    <option value="tous" {{ request('age_group') == 'tous' ? 'selected' : '' }}>Tous</option>
                 </select>
             </div>
 
-            {{-- Modele eco --}}
             <div>
                 <select name="business_model" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
                     <option value="">Modele eco.</option>
-                    @foreach (['freemium', 'subscription', 'ads', 'paid', 'free'] as $bm)
-                        <option value="{{ $bm }}" {{ request('business_model') == $bm ? 'selected' : '' }}>{{ ucfirst($bm) }}</option>
+                    @foreach (['gratuit' => 'Gratuit', 'freemium' => 'Freemium', 'abonnement' => 'Abonnement', 'pub' => 'Pub', 'payant' => 'Payant'] as $val => $label)
+                        <option value="{{ $val }}" {{ request('business_model') == $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
 
-            {{-- Taille marche --}}
             <div>
                 <select name="market_size" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
                     <option value="">Marche</option>
-                    @foreach (['niche', 'moyen', 'massif'] as $ms)
-                        <option value="{{ $ms }}" {{ request('market_size') == $ms ? 'selected' : '' }}>{{ ucfirst($ms) }}</option>
+                    @foreach (['niche' => 'Niche', 'moyen' => 'Moyen', 'enorme' => 'Enorme'] as $val => $label)
+                        <option value="{{ $val }}" {{ request('market_size') == $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
 
-            {{-- Concurrence --}}
             <div>
                 <select name="competition_level" class="w-full bg-dark-700 border border-dark-700 rounded px-3 py-2 text-sm text-white">
                     <option value="">Concurrence</option>
-                    @foreach (['faible', 'moyenne', 'saturée'] as $cl)
-                        <option value="{{ $cl }}" {{ request('competition_level') == $cl ? 'selected' : '' }}>{{ ucfirst($cl) }}</option>
+                    @foreach (['faible' => 'Faible', 'moyenne' => 'Moyenne', 'saturee' => 'Saturee'] as $val => $label)
+                        <option value="{{ $val }}" {{ request('competition_level') == $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
 
-            {{-- Boutons --}}
             <div class="flex gap-2">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm text-white font-medium">
                     Filtrer
@@ -110,93 +103,121 @@
         </div>
     </form>
 
-    {{-- Tableau --}}
-    <div class="overflow-x-auto bg-dark-800 rounded-lg">
-        <table class="w-full text-sm">
-            <thead class="bg-dark-700 text-gray-400 text-left">
-                <tr>
-                    @php
-                        $columns = [
-                            'explosion_score' => 'Explosion',
-                            'buzz_score' => 'Buzz',
-                            'name' => 'App',
-                            'category' => 'Categorie',
-                            'platform' => 'Plateforme',
-                            'k_factor' => 'K-factor',
-                            'feature_count' => 'Features',
-                            'release_date' => 'Sortie',
-                        ];
-                    @endphp
-                    @foreach ($columns as $col => $label)
-                        @php
-                            $newDir = ($sortBy === $col && $sortDir === 'desc') ? 'asc' : 'desc';
-                            $arrow = $sortBy === $col ? ($sortDir === 'desc' ? ' ↓' : ' ↑') : '';
-                        @endphp
-                        <th class="px-3 py-3 cursor-pointer hover:text-white whitespace-nowrap">
-                            <a href="{{ request()->fullUrlWithQuery(['sort' => $col, 'dir' => $newDir]) }}">
-                                {{ $label }}{{ $arrow }}
-                            </a>
-                        </th>
-                    @endforeach
-                    <th class="px-3 py-3">Resume</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-dark-700">
-                @forelse ($apps as $app)
-                    <tr class="hover:bg-dark-700 transition-colors cursor-pointer"
-                        onclick="window.location='{{ route('app.show', $app) }}'">
-                        {{-- Score explosion --}}
-                        <td class="px-3 py-3 text-center score-cell {{ $app->explosion_score >= 7 ? 'score-high' : ($app->explosion_score >= 4 ? 'score-mid' : 'score-low') }}">
-                            {{ $app->explosion_score }}/10
-                        </td>
-                        {{-- Score buzz --}}
-                        <td class="px-3 py-3 text-center score-cell {{ $app->buzz_score >= 7 ? 'score-high' : ($app->buzz_score >= 4 ? 'score-mid' : 'score-low') }}">
-                            {{ $app->buzz_score }}/10
-                        </td>
-                        {{-- Nom --}}
-                        <td class="px-3 py-3">
-                            <div class="flex items-center gap-2">
-                                @if ($app->icon_url)
-                                    <img src="{{ $app->icon_url }}" alt="" class="w-8 h-8 rounded">
+    {{-- Cards --}}
+    <div class="space-y-4">
+        @forelse ($apps as $app)
+            <div class="bg-dark-800 rounded-lg p-5 hover:bg-dark-700 transition-colors cursor-pointer"
+                 onclick="window.location='{{ route('app.show', $app) }}'">
+
+                {{-- Ligne 1 : Scores + Nom + Categorie --}}
+                <div class="flex items-center gap-4 mb-3">
+                    {{-- Scores --}}
+                    <div class="flex gap-2 shrink-0">
+                        <span class="px-2 py-1 rounded text-xs font-bold {{ $app->explosion_score >= 7 ? 'bg-green-900 text-green-300' : ($app->explosion_score >= 4 ? 'bg-yellow-900 text-yellow-300' : 'bg-red-900 text-red-300') }}">
+                            Explosion {{ $app->explosion_score }}/10
+                        </span>
+                        <span class="px-2 py-1 rounded text-xs font-bold {{ $app->buzz_score >= 7 ? 'bg-green-900 text-green-300' : ($app->buzz_score >= 4 ? 'bg-yellow-900 text-yellow-300' : 'bg-red-900 text-red-300') }}">
+                            Buzz {{ $app->buzz_score }}/10
+                        </span>
+                        <span class="px-2 py-1 rounded text-xs font-bold {{ $app->k_factor >= 7 ? 'bg-green-900 text-green-300' : ($app->k_factor >= 4 ? 'bg-yellow-900 text-yellow-300' : 'bg-red-900 text-red-300') }}">
+                            Viralite {{ $app->k_factor }}/10
+                        </span>
+                    </div>
+
+                    {{-- Nom + icone --}}
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        @if ($app->icon_url)
+                            <img src="{{ $app->icon_url }}" alt="" class="w-10 h-10 rounded-lg shrink-0">
+                        @endif
+                        <div class="min-w-0">
+                            <h3 class="text-white font-semibold text-lg truncate">{{ $app->name }}</h3>
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded">{{ $app->category }}</span>
+                                <span class="uppercase">{{ $app->platform }}</span>
+                                <span>{{ $app->release_date?->format('d/m/Y') }}</span>
+                                @if ($app->age_group)
+                                    <span class="bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded">{{ ucfirst(str_replace('_', ' ', $app->age_group)) }}</span>
                                 @endif
-                                <div>
-                                    <div class="font-medium text-white">{{ $app->name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $app->target_audience_fr }}</div>
-                                </div>
+                                @if ($app->business_model)
+                                    <span class="bg-emerald-900/50 text-emerald-300 px-2 py-0.5 rounded">{{ ucfirst($app->business_model) }}</span>
+                                @endif
                             </div>
-                        </td>
-                        {{-- Categorie --}}
-                        <td class="px-3 py-3">
-                            <span class="bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded text-xs">{{ $app->category }}</span>
-                        </td>
-                        {{-- Plateforme --}}
-                        <td class="px-3 py-3 text-xs uppercase">{{ $app->platform }}</td>
-                        {{-- K-factor --}}
-                        <td class="px-3 py-3 text-center {{ $app->k_factor >= 7 ? 'text-green-400' : ($app->k_factor >= 4 ? 'text-yellow-400' : 'text-red-400') }}">
-                            {{ $app->k_factor }}/10
-                        </td>
-                        {{-- Features --}}
-                        <td class="px-3 py-3 text-center">{{ $app->feature_count }}</td>
-                        {{-- Date --}}
-                        <td class="px-3 py-3 text-xs text-gray-400">{{ $app->release_date?->format('d/m/Y') }}</td>
-                        {{-- Resume --}}
-                        <td class="px-3 py-3 text-xs text-gray-400 max-w-xs truncate">
-                            {{ \Illuminate\Support\Str::limit($app->summary_fr, 80) }}
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="9" class="px-3 py-8 text-center text-gray-500">
-                            Aucune app trouvee. Lancez <code class="text-blue-400">php artisan apps:scrape</code> pour commencer.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Ligne 2 : Ce que fait l'app --}}
+                <p class="text-gray-300 text-sm mb-3">{{ $app->summary_fr }}</p>
+
+                {{-- Ligne 3 : Cible + Ce qui est exceptionnel --}}
+                <div class="grid md:grid-cols-2 gap-3 mb-3">
+                    @if ($app->target_audience_fr)
+                        <div class="text-xs">
+                            <span class="text-blue-400 font-semibold">Pour qui :</span>
+                            <span class="text-gray-400">{{ $app->target_audience_fr }}</span>
+                        </div>
+                    @endif
+                    @if ($app->exceptional_factor_fr)
+                        <div class="text-xs">
+                            <span class="text-yellow-400 font-semibold">Ce qui est unique :</span>
+                            <span class="text-gray-400">{{ $app->exceptional_factor_fr }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Ligne 4 : Points + et - --}}
+                <div class="grid md:grid-cols-2 gap-3 mb-3">
+                    @if (is_array($app->pros_fr) && count($app->pros_fr))
+                        <div class="text-xs">
+                            <span class="text-green-400 font-semibold">Points forts :</span>
+                            <span class="text-gray-400">{{ implode(' / ', $app->pros_fr) }}</span>
+                        </div>
+                    @endif
+                    @if (is_array($app->cons_fr) && count($app->cons_fr))
+                        <div class="text-xs">
+                            <span class="text-red-400 font-semibold">Points faibles :</span>
+                            <span class="text-gray-400">{{ implode(' / ', $app->cons_fr) }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Ligne 5 : Badges infos --}}
+                <div class="flex flex-wrap gap-2 text-xs">
+                    @if ($app->feature_count)
+                        <span class="bg-dark-900 text-gray-400 px-2 py-1 rounded">{{ $app->feature_count }} fonctions</span>
+                    @endif
+                    @if ($app->retention_estimate)
+                        <span class="bg-dark-900 text-gray-400 px-2 py-1 rounded">Retention {{ $app->retention_estimate }}</span>
+                    @endif
+                    @if ($app->usage_duration)
+                        <span class="bg-dark-900 text-gray-400 px-2 py-1 rounded">Usage {{ $app->usage_duration }}</span>
+                    @endif
+                    @if ($app->group_belonging)
+                        <span class="bg-dark-900 text-blue-400 px-2 py-1 rounded">Communaute</span>
+                    @endif
+                    @if ($app->user_recognition)
+                        <span class="bg-dark-900 text-purple-400 px-2 py-1 rounded">Mise en avant</span>
+                    @endif
+                    @if ($app->competition_level)
+                        <span class="bg-dark-900 text-gray-400 px-2 py-1 rounded">Concurrence {{ $app->competition_level }}</span>
+                    @endif
+                    @if ($app->market_size)
+                        <span class="bg-dark-900 text-gray-400 px-2 py-1 rounded">Marche {{ $app->market_size }}</span>
+                    @endif
+                    @if ($app->technical_effort)
+                        <span class="bg-dark-900 text-gray-400 px-2 py-1 rounded">Difficulte {{ $app->technical_effort }}</span>
+                    @endif
+                </div>
+            </div>
+        @empty
+            <div class="bg-dark-800 rounded-lg p-8 text-center text-gray-500">
+                Aucune app trouvee. Le scraping tourne automatiquement toutes les 6h.
+            </div>
+        @endforelse
     </div>
 
     {{-- Pagination --}}
-    <div class="mt-4">
+    <div class="mt-6">
         {{ $apps->links() }}
     </div>
 @endsection

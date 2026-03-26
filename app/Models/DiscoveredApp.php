@@ -17,6 +17,7 @@ class DiscoveredApp extends Model
         'user_recognition' => 'boolean',
         'pros_fr' => 'array',
         'cons_fr' => 'array',
+        'features_list_fr' => 'array',
         'feature_count' => 'integer',
         'explosion_score' => 'integer',
         'buzz_score' => 'integer',
@@ -57,8 +58,8 @@ class DiscoveredApp extends Model
         return $query->where('category', $category);
     }
 
-    public function scopeSince2026($query)
+    public function scopeSince2025($query)
     {
-        return $query->where('release_date', '>=', '2026-01-01');
+        return $query->where('release_date', '>=', '2025-01-01');
     }
 }

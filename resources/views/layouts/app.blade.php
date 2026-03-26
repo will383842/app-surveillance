@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'App Surveillance') — Veille Apps</title>
+    <title>@yield('title', 'Suivi nouvelles APPs') — Veille Apps</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -30,7 +30,7 @@
     <nav class="bg-dark-800 border-b border-dark-700 px-6 py-4">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <a href="/" class="text-xl font-bold text-white">
-                App Surveillance
+                Suivi nouvelles APPs
             </a>
             <div class="flex items-center gap-4 text-sm text-gray-400">
                 @yield('nav-stats')

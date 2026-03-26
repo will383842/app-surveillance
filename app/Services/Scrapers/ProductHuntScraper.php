@@ -60,7 +60,7 @@ class ProductHuntScraper
             : now()->toDateString();
 
         // Filtrer < 2026
-        if ($releaseDate < '2026-01-01') return 0;
+        if ($releaseDate < '2025-01-01') return 0;
 
         $existing = DiscoveredApp::where('source', 'producthunt')
             ->where('source_url', $node['url'] ?? '')

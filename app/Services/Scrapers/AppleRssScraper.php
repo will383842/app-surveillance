@@ -67,7 +67,7 @@ class AppleRssScraper
         if (empty($name)) return 0;
 
         $releaseDate = $app['releaseDate'] ?? now()->toDateString();
-        if ($releaseDate < '2026-01-01') return 0;
+        if ($releaseDate < '2025-01-01') return 0;
 
         // Déduplique par URL du store
         $sourceUrl = $app['url'] ?? '';

@@ -34,6 +34,9 @@ class DashboardController extends Controller
         if ($request->filled('min_score')) {
             $query->where('explosion_score', '>=', intval($request->min_score));
         }
+        if ($request->filled('age_group')) {
+            $query->where('age_group', $request->age_group);
+        }
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
