@@ -16,6 +16,31 @@
 @endsection
 
 @section('content')
+    {{-- Onglets dossiers --}}
+    <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+        @php
+            $currentFolder = request('folder');
+            $tabs = [
+                [null, 'Toutes', $folderCounts['tous'], 'from-gray-600 to-gray-700'],
+                ['top', 'Top a etudier', $folderCounts['top'], 'from-emerald-600 to-emerald-700'],
+                ['a_voir', 'A voir', $folderCounts['a_voir'], 'from-amber-600 to-amber-700'],
+                ['archive', 'Archivees', $folderCounts['archive'], 'from-gray-500 to-gray-600'],
+                ['non_classe', 'Non classees', $folderCounts['non_classe'], 'from-indigo-600 to-indigo-700'],
+            ];
+        @endphp
+        @foreach ($tabs as [$folder, $label, $count, $gradient])
+            @php
+                $isActive = $currentFolder === $folder;
+                $href = $folder ? '/?folder=' . $folder : '/';
+            @endphp
+            <a href="{{ $href }}"
+               class="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ $isActive ? 'bg-gradient-to-r ' . $gradient . ' text-white shadow-lg' : 'glass text-gray-400 hover:text-white' }}">
+                {{ $label }}
+                <span class="px-2 py-0.5 rounded-full text-xs {{ $isActive ? 'bg-white/20' : 'bg-white/5' }}">{{ $count }}</span>
+            </a>
+        @endforeach
+    </div>
+
     {{-- Filtres --}}
     <div class="glass rounded-2xl p-5 mb-8" x-data="{ open: true }">
         <div class="flex items-center justify-between mb-4 cursor-pointer" @click="open = !open">
@@ -154,32 +179,45 @@
                     @endif
                 </div>
 
-                {{-- Badges --}}
-                <div class="flex flex-wrap gap-1.5 text-xs">
-                    @if ($app->feature_count)
-                        <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">{{ $app->feature_count }} fonctions</span>
-                    @endif
-                    @if ($app->retention_estimate)
-                        <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">Retention {{ $app->retention_estimate }}</span>
-                    @endif
-                    @if ($app->usage_duration)
-                        <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">Usage {{ $app->usage_duration }}</span>
-                    @endif
-                    @if ($app->group_belonging)
-                        <span class="bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded-lg">Communaute</span>
-                    @endif
-                    @if ($app->user_recognition)
-                        <span class="bg-purple-500/10 text-purple-400 px-2 py-1 rounded-lg">Mise en avant</span>
-                    @endif
-                    @if ($app->competition_level)
-                        <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">Concurrence {{ $app->competition_level }}</span>
-                    @endif
-                    @if ($app->market_size)
-                        <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">Marche {{ $app->market_size }}</span>
-                    @endif
-                    @if ($app->technical_effort)
-                        <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">Complexite {{ $app->technical_effort }}</span>
-                    @endif
+                {{-- Boutons de classement + Badges --}}
+                <div class="flex items-center justify-between mt-1">
+                    {{-- Boutons dossier --}}
+                    <div class="flex gap-1.5" x-data="{ current: '{{ $app->folder }}' }" @click.stop>
+                        <button @click="setFolder({{ $app->id }}, 'top', $el)"
+                                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :class="current === 'top' ? 'bg-emerald-500 text-white' : 'bg-white/5 text-gray-400 hover:bg-emerald-500/20 hover:text-emerald-400'">
+                            Top a etudier
+                        </button>
+                        <button @click="setFolder({{ $app->id }}, 'a_voir', $el)"
+                                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :class="current === 'a_voir' ? 'bg-amber-500 text-white' : 'bg-white/5 text-gray-400 hover:bg-amber-500/20 hover:text-amber-400'">
+                            A voir
+                        </button>
+                        <button @click="setFolder({{ $app->id }}, 'archive', $el)"
+                                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :class="current === 'archive' ? 'bg-gray-500 text-white' : 'bg-white/5 text-gray-400 hover:bg-gray-500/20 hover:text-gray-300'">
+                            Archiver
+                        </button>
+                    </div>
+
+                    {{-- Badges infos --}}
+                    <div class="flex flex-wrap gap-1.5 text-xs">
+                        @if ($app->feature_count)
+                            <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">{{ $app->feature_count }} fonctions</span>
+                        @endif
+                        @if ($app->retention_estimate)
+                            <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">Retention {{ $app->retention_estimate }}</span>
+                        @endif
+                        @if ($app->group_belonging)
+                            <span class="bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded-lg">Communaute</span>
+                        @endif
+                        @if ($app->user_recognition)
+                            <span class="bg-purple-500/10 text-purple-400 px-2 py-1 rounded-lg">Mise en avant</span>
+                        @endif
+                        @if ($app->market_size)
+                            <span class="bg-white/5 text-gray-400 px-2 py-1 rounded-lg">{{ ucfirst($app->market_size) }}</span>
+                        @endif
+                    </div>
                 </div>
             </a>
         @empty
@@ -194,4 +232,25 @@
     <div class="mt-8">
         {{ $apps->links() }}
     </div>
+
+    <script>
+        function setFolder(appId, folder, el) {
+            const alpine = Alpine.$data(el.closest('[x-data]'));
+            const newFolder = alpine.current === folder ? null : folder;
+
+            fetch(`/app/${appId}/folder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ folder: newFolder }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                alpine.current = data.folder || '';
+            });
+        }
+    </script>
 @endsection

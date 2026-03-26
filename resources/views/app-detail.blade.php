@@ -7,7 +7,27 @@
         <a href="{{ url()->previous() }}" class="text-blue-400 hover:text-blue-300 text-sm">&larr; Retour a la liste</a>
     </div>
 
-    <div class="bg-dark-800 rounded-lg p-6">
+    <div class="glass-strong rounded-2xl p-6">
+        {{-- Boutons de classement --}}
+        <div class="flex gap-2 mb-6" x-data="{ current: '{{ $app->folder }}' }">
+            <span class="text-sm text-gray-400 self-center mr-2">Classer :</span>
+            <button @click="setFolder({{ $app->id }}, 'top', $el)"
+                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                    :class="current === 'top' ? 'bg-emerald-500 text-white shadow-lg' : 'glass text-gray-400 hover:text-emerald-400'">
+                Top a etudier
+            </button>
+            <button @click="setFolder({{ $app->id }}, 'a_voir', $el)"
+                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                    :class="current === 'a_voir' ? 'bg-amber-500 text-white shadow-lg' : 'glass text-gray-400 hover:text-amber-400'">
+                A voir
+            </button>
+            <button @click="setFolder({{ $app->id }}, 'archive', $el)"
+                    class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                    :class="current === 'archive' ? 'bg-gray-500 text-white shadow-lg' : 'glass text-gray-400 hover:text-gray-300'">
+                Archiver
+            </button>
+        </div>
+
         {{-- Header --}}
         <div class="flex items-start gap-4 mb-6">
             @if ($app->icon_url)
@@ -45,7 +65,7 @@
                 ];
             @endphp
             @foreach ($scores as $score)
-                <div class="bg-dark-700 rounded-lg p-4 text-center">
+                <div class="glass rounded-lg p-4 text-center">
                     <div class="text-xs text-gray-400 mb-1">{{ $score['label'] }}</div>
                     @if ($score['max'])
                         @php $pct = ($score['value'] ?? 0) / $score['max'] * 100; @endphp
@@ -67,7 +87,7 @@
 
         {{-- Experience utilisateur --}}
         @if ($app->experience_fr)
-            <div class="bg-dark-700 rounded-lg p-4 mb-6">
+            <div class="glass rounded-lg p-4 mb-6">
                 <h3 class="text-sm font-semibold text-cyan-400 mb-2">Comment ca se passe quand on l'utilise</h3>
                 <p class="text-gray-300 text-sm">{{ $app->experience_fr }}</p>
             </div>
@@ -75,17 +95,17 @@
 
         {{-- Grid infos principales --}}
         <div class="grid md:grid-cols-2 gap-6 mb-6">
-            <div class="bg-dark-700 rounded-lg p-4">
+            <div class="glass rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-yellow-400 mb-2">Ce qui est unique</h3>
                 <p class="text-gray-300 text-sm">{{ $app->exceptional_factor_fr ?? 'Non analyse' }}</p>
             </div>
 
-            <div class="bg-dark-700 rounded-lg p-4">
+            <div class="glass rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-blue-400 mb-2">Pour qui c'est fait</h3>
                 <p class="text-gray-300 text-sm">{{ $app->target_audience_fr ?? 'Non analyse' }}</p>
             </div>
 
-            <div class="bg-dark-700 rounded-lg p-4">
+            <div class="glass rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-green-400 mb-2">Points forts</h3>
                 @if (is_array($app->pros_fr))
                     <ul class="text-sm text-gray-300 space-y-1">
@@ -98,7 +118,7 @@
                 @endif
             </div>
 
-            <div class="bg-dark-700 rounded-lg p-4">
+            <div class="glass rounded-lg p-4">
                 <h3 class="text-sm font-semibold text-red-400 mb-2">Points faibles</h3>
                 @if (is_array($app->cons_fr))
                     <ul class="text-sm text-gray-300 space-y-1">
@@ -114,18 +134,18 @@
 
         {{-- Liste des fonctions --}}
         @if (is_array($app->features_list_fr) && count($app->features_list_fr))
-            <div class="bg-dark-700 rounded-lg p-4 mb-6">
+            <div class="glass rounded-lg p-4 mb-6">
                 <h3 class="text-sm font-semibold text-indigo-400 mb-2">Les fonctions de l'app ({{ count($app->features_list_fr) }})</h3>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($app->features_list_fr as $feature)
-                        <span class="bg-dark-900 text-gray-300 px-3 py-1 rounded text-sm">{{ $feature }}</span>
+                        <span class="bg-white/5 text-gray-300 px-3 py-1 rounded text-sm">{{ $feature }}</span>
                     @endforeach
                 </div>
             </div>
         @endif
 
         {{-- Verdict explosion --}}
-        <div class="bg-dark-700 rounded-lg p-4 mb-6 border-l-4 border-purple-500">
+        <div class="glass rounded-lg p-4 mb-6 border-l-4 border-purple-500">
             <h3 class="text-sm font-semibold text-purple-400 mb-2">Verdict : est-ce que ca peut exploser ?</h3>
             <p class="text-gray-300 text-sm">{{ $app->explosion_verdict_fr ?? 'Non analyse' }}</p>
         </div>
@@ -134,20 +154,20 @@
         <h2 class="text-lg font-semibold text-white mb-3">Comment l'app engage les utilisateurs</h2>
         <div class="grid md:grid-cols-2 gap-4 mb-6">
             @if ($app->retention_why_fr)
-                <div class="bg-dark-900 rounded p-4">
+                <div class="bg-white/5 rounded p-4">
                     <div class="text-xs text-gray-500 mb-1">Pourquoi les gens reviennent (ou pas)</div>
                     <div class="text-sm text-gray-300">{{ $app->retention_why_fr }}</div>
                 </div>
             @endif
 
             @if ($app->sharing_mechanisms_fr)
-                <div class="bg-dark-900 rounded p-4">
+                <div class="bg-white/5 rounded p-4">
                     <div class="text-xs text-gray-500 mb-1">Comment ca se partage</div>
                     <div class="text-sm text-gray-300">{{ $app->sharing_mechanisms_fr }}</div>
                 </div>
             @endif
 
-            <div class="bg-dark-900 rounded p-4">
+            <div class="bg-white/5 rounded p-4">
                 <div class="text-xs text-gray-500 mb-1">Sentiment de communaute</div>
                 <div class="text-sm text-gray-300">
                     @if ($app->group_belonging)
@@ -158,7 +178,7 @@
                 </div>
             </div>
 
-            <div class="bg-dark-900 rounded p-4">
+            <div class="bg-white/5 rounded p-4">
                 <div class="text-xs text-gray-500 mb-1">L'utilisateur est mis en avant ?</div>
                 <div class="text-sm text-gray-300">
                     @if ($app->user_recognition)
@@ -170,14 +190,14 @@
             </div>
 
             @if ($app->usage_detail_fr)
-                <div class="bg-dark-900 rounded p-4">
+                <div class="bg-white/5 rounded p-4">
                     <div class="text-xs text-gray-500 mb-1">Temps passe sur l'app</div>
                     <div class="text-sm text-gray-300">{{ $app->usage_detail_fr }}</div>
                 </div>
             @endif
 
             @if ($app->competition_detail_fr)
-                <div class="bg-dark-900 rounded p-4">
+                <div class="bg-white/5 rounded p-4">
                     <div class="text-xs text-gray-500 mb-1">Concurrents et differences</div>
                     <div class="text-sm text-gray-300">{{ $app->competition_detail_fr }}</div>
                 </div>
@@ -197,11 +217,32 @@
                 ];
             @endphp
             @foreach ($infos as $info)
-                <div class="bg-dark-900 rounded p-3">
+                <div class="bg-white/5 rounded p-3">
                     <div class="text-xs text-gray-500 mb-1">{{ $info['label'] }}</div>
                     <div class="text-sm text-gray-300 font-medium">{{ $info['value'] }}</div>
                 </div>
             @endforeach
         </div>
     </div>
+
+    <script>
+        function setFolder(appId, folder, el) {
+            const alpine = Alpine.$data(el.closest('[x-data]'));
+            const newFolder = alpine.current === folder ? null : folder;
+
+            fetch(`/app/${appId}/folder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ folder: newFolder }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                alpine.current = data.folder || '';
+            });
+        }
+    </script>
 @endsection

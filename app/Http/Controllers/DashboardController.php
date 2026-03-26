@@ -12,6 +12,15 @@ class DashboardController extends Controller
     {
         $query = DiscoveredApp::analyzed();
 
+        // Filtre dossier
+        if ($request->filled('folder')) {
+            if ($request->folder === 'non_classe') {
+                $query->whereNull('folder');
+            } else {
+                $query->where('folder', $request->folder);
+            }
+        }
+
         // Filtres
         if ($request->filled('category')) {
             $query->where('category', $request->category);
@@ -59,10 +68,19 @@ class DashboardController extends Controller
         $apps = $query->paginate(30)->withQueryString();
 
         // Stats
-        $totalApps = DiscoveredApp::count();
-        $analyzedApps = DiscoveredApp::where('analyzed', true)->count();
-        $pendingApps = $totalApps - $analyzedApps;
+        $totalApps = DiscoveredApp::analyzed()->count();
+        $analyzedApps = $totalApps;
+        $pendingApps = DiscoveredApp::where('analyzed', false)->count();
         $avgExplosion = DiscoveredApp::analyzed()->avg('explosion_score');
+
+        // Compteurs dossiers
+        $folderCounts = [
+            'tous' => $totalApps,
+            'top' => DiscoveredApp::analyzed()->where('folder', 'top')->count(),
+            'a_voir' => DiscoveredApp::analyzed()->where('folder', 'a_voir')->count(),
+            'archive' => DiscoveredApp::analyzed()->where('folder', 'archive')->count(),
+            'non_classe' => DiscoveredApp::analyzed()->whereNull('folder')->count(),
+        ];
 
         // Options pour les filtres
         $categories = DiscoveredApp::analyzed()->distinct()->pluck('category')->filter()->sort()->values();
@@ -72,13 +90,32 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'apps', 'totalApps', 'analyzedApps', 'pendingApps', 'avgExplosion',
             'categories', 'platforms', 'sources',
-            'sortBy', 'sortDir'
+            'sortBy', 'sortDir', 'folderCounts'
         ));
     }
 
     public function show(DiscoveredApp $app)
     {
         return view('app-detail', compact('app'));
+    }
+
+    public function setFolder(Request $request, DiscoveredApp $app)
+    {
+        $folder = $request->input('folder');
+        $allowed = ['top', 'a_voir', 'archive', null];
+
+        if (!in_array($folder, $allowed, true)) {
+            $folder = null;
+        }
+
+        $app->update(['folder' => $folder]);
+
+        // Si requete AJAX, retourner JSON
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['ok' => true, 'folder' => $folder]);
+        }
+
+        return back();
     }
 
     public function exportCsv(Request $request): StreamedResponse
@@ -88,25 +125,33 @@ class DashboardController extends Controller
         if ($request->filled('category')) $query->where('category', $request->category);
         if ($request->filled('platform')) $query->where('platform', $request->platform);
         if ($request->filled('min_score')) $query->where('explosion_score', '>=', intval($request->min_score));
+        if ($request->filled('folder')) {
+            if ($request->folder === 'non_classe') {
+                $query->whereNull('folder');
+            } else {
+                $query->where('folder', $request->folder);
+            }
+        }
 
         $apps = $query->get();
 
         return response()->streamDownload(function () use ($apps) {
             $handle = fopen('php://output', 'w');
-            // BOM UTF-8 pour Excel
             fwrite($handle, "\xEF\xBB\xBF");
 
             fputcsv($handle, [
-                'Nom', 'Résumé', 'Catégorie', 'Plateforme', 'Date sortie',
-                'Nb Features', 'Exceptionnel', 'Cible', 'Modèle éco',
+                'Dossier', 'Nom', 'Resume', 'Categorie', 'Plateforme', 'Date sortie',
+                'Nb Fonctions', 'Exceptionnel', 'Cible', 'Modele eco',
                 'Points +', 'Points -', 'Score explosion /10', 'Verdict explosion',
-                'Score buzz /10', 'Rétention', 'K-factor /10', 'Partage',
-                'Groupe', 'Durée usage', 'Reconnaissance', 'Concurrence',
-                'Effort technique', 'Taille marché', 'URL',
+                'Score buzz /10', 'Retention', 'K-factor /10', 'Partage',
+                'Communaute', 'Duree usage', 'Mise en avant', 'Concurrence',
+                'Difficulte technique', 'Taille marche', 'URL',
             ], ';');
 
             foreach ($apps as $app) {
+                $folderLabels = ['top' => 'Top a etudier', 'a_voir' => 'A voir', 'archive' => 'Archive'];
                 fputcsv($handle, [
+                    $folderLabels[$app->folder] ?? 'Non classe',
                     $app->name,
                     $app->summary_fr,
                     $app->category,
